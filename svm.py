@@ -34,7 +34,6 @@ def feature(data):
         url = data[i]["url"]
         periods = url.count('.')
 
-        # TODO: add another feature so that we have 2 features
         slashes = url.count('/')
         features.append([float(periods),float(slashes)])
 
@@ -63,14 +62,31 @@ def format():
     x = np.array(feat)
     xScaled = preprocessing.scale(x)
     pprint(xScaled)
-    fit(xScaled, tar)
+    return fit(xScaled, tar)
 
 
 def fit(features, target):
     model = svm.SVC()
     model.fit(features, target)
     pprint(model)
+    return model
 
+# Returns the formatted feature matrix
+# Then if you have a model and the test data, you can run model.predict(testdata)
+# to get predictions for all the data
+def testing():
+    # I made a file named test-data that contained the next 500 entries in the data file
+    # So running this won't work without that file, or a file with the same name
+    data = parse('test-data.txt')
+    feat = feature(data)
+    x = np.array(feat)
+    xScaled = preprocessing.scale(x)
+    return xScaled
+
+# TODO: Clean up code, start making a structure for the code
+# TODO: Possibly make some graphics so that we can see what is happening with our data
+# TODO: See how our features are doing (using graphics?) and improve upon them
+# TODO: Test on a lot of data
 
 if __name__ == '__main__':
     parse('big_sample.txt')
