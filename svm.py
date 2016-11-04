@@ -1,13 +1,26 @@
 import re
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 from sklearn import svm
 from sklearn import preprocessing
+from sklearn.feature_extraction.text import CountVectorizer
 from pprint import pprint
 
 
+def vectorize(urls):
+    clean = []
+    for element in urls:
+        clean.append(element["url"])
+    vectorizer = CountVectorizer(min_df=1)
+    X = vectorizer.fit_transform(clean)
+    return X.toarray()
+
 def parse(filename):
     data = []
+
+    su = 0
 
     with open(filename) as f:
         for line in f:
@@ -20,13 +33,13 @@ def parse(filename):
             datum['result'] = resultObj
 
             data += [datum]
+            su += 1
 
-    # pprint(data)
+            if su == 2000:
+                break
     return data
 
-
 def feature(data):
-    # pprint(data[0]["url"])
     features = []  # Each entry is the feature score for a given sample
     for i in range(len(data)):
         # for entry in data:
@@ -56,11 +69,11 @@ def target(data):
 def format():
     # This will not work without the file. I made a file with the first 500 samples from
     # the big data file.
-    data = parse('half-data.txt')
-    feat = feature(data)
+    data = parse('big_sample.txt')
+    feat = vectorize(data)
+    #feat = feature(data)
     tar = target(data)
     x = np.array(feat)
-    #pprint(xScaled)
     return fit(x, tar)
 
 
@@ -77,12 +90,11 @@ def fit(features, target):
 def testing():
     # I made a file named test-data that contained the next 500 entries in the data file
     # So running this won't work without that file, or a file with the same name
-    data = parse('test-data.txt')
+    data = parse('big_sample.txt')
     feat = feature(data)
     x = np.array(feat)
     xScaled = preprocessing.scale(x)
     return xScaled
-
 
 def plot(model, X, Y):
     # get the separating hyperplane
