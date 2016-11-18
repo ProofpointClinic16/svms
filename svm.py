@@ -1,6 +1,8 @@
 import re
 import numpy as np
 import matplotlib
+from trainTest import create_sets
+#execfile("/home/Documents/svms/trainTest/py")
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 from sklearn import svm
@@ -12,15 +14,14 @@ from pprint import pprint
 def vectorize(urls):
     clean = []
     for element in urls:
-        clean.append(element["url"])
+        #print(element)
+        clean.append(element["url"].replace('http://', ''))
     vectorizer = CountVectorizer(min_df=1)
     X = vectorizer.fit_transform(clean)
     return X.toarray()
 
 def parse(filename):
     data = []
-
-    su = 0
 
     with open(filename) as f:
         for line in f:
@@ -33,10 +34,6 @@ def parse(filename):
             datum['result'] = resultObj
 
             data += [datum]
-            su += 1
-
-            if su == 2000:
-                break
     return data
 
 def feature(data):
@@ -69,18 +66,49 @@ def target(data):
 def format():
     # This will not work without the file. I made a file with the first 500 samples from
     # the big data file.
-    data = parse('big_sample.txt')
-    feat = vectorize(data)
+    #data = parse('big_sample.txt')
+
+    training, testing = create_sets('big_sample.txt')
+
+    feat = vectorize(training + testing)
+
+    half = len(feat) // 2
+
+    trainingFeatures = feat[:half]
+    predictionFeatures = feat[half:]
+    print('passed features')
+
     #feat = feature(data)
-    tar = target(data)
-    x = np.array(feat)
-    return fit(x, tar)
+
+    tar = target(training + testing)
+    trainingTarget = tar[:half]
+    predictionTarget = tar[half:]
+    print('passed target')
+    print(len(feat[0]))
+    model = fit(trainingFeatures, trainingTarget)
+    print('passed fitting')
+
+    res = []
+
+    for element in predictionFeatures:
+        res.append([model.predict([element])])
+
+    print('passed append')
+    numErrors = 0
+
+    for i in range(len(res)):
+        if predictionTarget[i] != res[i]:
+            numErrors += 1
+    print(numErrors / len(res) * 100)
+
+    #x = np.array(feat)
+    #return fit(x, tar)
 
 
 def fit(features, target):
     model = svm.SVC(kernel='linear')
     model.fit(features, target)
-    plot(model, features, target)
+    #plot(model, features, target)
     return model
 
 
